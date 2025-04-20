@@ -75,6 +75,9 @@ namespace Window {
 
         _inputFirst.SetText(u8"C:/Папка Y");
         _inputSecond.SetText(u8"C:/Папка Z");
+
+        //_inputFirst.SetText(u8"C:/Abc");
+        //_inputSecond.SetText(u8"C:/Xyz");
     }
 
     void FindDuplicate::FinDublicate(const std::string& firstPath, const std::string& secondPath) {
@@ -108,6 +111,11 @@ namespace Window {
     }
 
     void FindDuplicate::FindFiles(const std::filesystem::path& dir, std::map<std::string, std::string>& files) {
+        if (!std::filesystem::exists(dir)) {
+            LOG("[FindDuplicate::FindFiles] dir '{}' not founded.", dir);
+            return;
+        }
+
         for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(dir)) {
             if (entry.is_directory()) {
                 FindFiles(entry, files);
@@ -181,11 +189,54 @@ namespace Window {
 
     void FindDuplicate::InfoDisplay() {
         ImGui::BeginChild("info", { (_widthWindow - border), (_heightWindow / 2.f - 55.f) }, true);
-        if (_itSelectDublicate == _dublicates.end()) {
+        if (_itSelectDublicate == _dublicates.end() || !*_itSelectDublicate) {
             ImGui::EndChild();
             return;
         }
-        
+
+        auto& infoFiles = *_itSelectDublicate;
+        auto& texturePtr = infoFiles->texturePtr;
+
+        if (!texturePtr && help::FileManager::HasFile(infoFiles->fileNameFirst)) {
+            texturePtr = Texture::AddTexture(infoFiles->fileNameFirst, 0);
+            texturePtr->Load();
+        }
+
+        if (texturePtr) {
+            float verticalSpace = 0.f;
+            float height = static_cast<float>(texturePtr->GetHeight());
+            float width = static_cast<float>(texturePtr->GetWidth());
+
+            constexpr float maxHeighthIcon = 400;
+            constexpr float maxWidthIcon = 400;
+
+            float yFactor = maxHeighthIcon / height;
+            float newWidth = width * yFactor;
+            if (newWidth > maxWidthIcon) {
+                height *= maxWidthIcon / width;
+                width = maxWidthIcon;
+                verticalSpace = maxHeighthIcon - height;
+            }
+            else {
+                height = maxHeighthIcon;
+                width = newWidth;
+            }
+
+            ImGui::Dummy(ImVec2(0.f, 0.f));
+            ImGui::Image(reinterpret_cast<ImTextureID>(**texturePtr),
+                { width, height },
+                { 0, 1 }, { 1, 0 }, { 1.f, 1.f, 1.f, 1.f }, { 1.f, 1.f, 1.f, 1.f });
+
+            if (verticalSpace > 0.f) {
+                ImGui::Dummy(ImVec2(0.f, verticalSpace));
+            }
+        }
+        else {
+            ImGui::Dummy(ImVec2(0.f, 40.f));
+            ImGui::TextColored(redColor, "%s", "Texture no founded.");
+            ImGui::Dummy(ImVec2(0.f, 40.f));
+        }
+
         ImGui::EndChild();
     }
 }

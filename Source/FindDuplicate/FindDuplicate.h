@@ -8,6 +8,7 @@
 
 #include  "../Help/Help.h"
 #include "../Editor/Input.h"
+#include "../Help/Texture.h"
 
 namespace Window {
 	class FindDuplicate final {
@@ -23,6 +24,7 @@ namespace Window {
 			std::string name;
 			std::string fileNameFirst;
 			std::string fileNameSecond;
+			Texture::Ptr texturePtr;
 		};
 
 	// FindDuplicate

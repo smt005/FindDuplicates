@@ -18,24 +18,4 @@ namespace FileUtils {
 
 		return fileNamePath.substr(0, pos);
 	}
-
-	std::string& ChangeToSlash(std::string& namePath)
-	{
-		for (char& ch : namePath) {
-			if (ch == '/') {
-				ch = '\\';
-			}
-		}
-		return namePath;
-	}
-
-	std::string& ChangeToForwardSlash(std::string& namePath)
-	{
-		for (char& ch : namePath) {
-			if (ch == '\\') {
-				ch = '/';
-			}
-		}
-		return namePath;
-	}
 }

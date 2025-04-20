@@ -37,6 +37,9 @@ namespace {
 	}
 
 	int Runwindow() {
+		std::locale::global(std::locale("ru_RU.UTF-8"));
+		std::cout.imbue(std::locale());
+
 #if WINDOWS_HIDE_CONSOLE
 		FreeConsole();
 #endif
@@ -90,8 +93,5 @@ namespace {
 }
 
 int main(int argc, char** argv) {
-	std::locale::global(std::locale("ru_RU.UTF-8")); // Или "ru_RU", "ru_RU.CP1251" в зависимости от кодировки
-	std::cout.imbue(std::locale()); // Применяем глобальную локаль к стандартному выводу
-
 	return Runwindow();
 }

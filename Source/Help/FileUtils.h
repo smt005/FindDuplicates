@@ -5,6 +5,27 @@
 
 namespace FileUtils {
 	std::string GetDirectory(const std::string& fileNamePath);
-	std::string& ChangeTodSlash(std::string& namePath);
-	std::string& ChangeToForwardSlash(std::string& namePath);
+
+
+	template <typename Str>
+	Str& ChangeToSlash(Str& namePath)
+	{
+		for (auto& ch : namePath) {
+			if (ch == '/') {
+				ch = '\\';
+			}
+		}
+		return namePath;
+	}
+
+	template <typename Str>
+	Str& ChangeToForwardSlash(Str& namePath)
+	{
+		for (auto& ch : namePath) {
+			if (ch == '\\') {
+				ch = '/';
+			}
+		}
+		return namePath;
+	}
 }
