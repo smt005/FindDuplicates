@@ -16,7 +16,7 @@
 #endif
 
 namespace {
-	const char* title = "Find dublicate tool";
+	const char* title = u8"Дубликаты";
 	int width = 800;
 	int height = 600;
 	int minWidth = 800;

@@ -59,6 +59,7 @@ namespace Window {
 		void FinUnique(PairMap& pairMap);
 		void CreateDublicate(InfoFiles& infoFiles);
 		void CreateDublicates(std::vector<std::unique_ptr<InfoFiles>>& dublicates);
+		void OpenFile(const std::string& fileNamePath);
 
 		void ListDisplay();
 		void InfoDisplay();

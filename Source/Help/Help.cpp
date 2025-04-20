@@ -1,6 +1,8 @@
 ﻿// ◦ Xyz ◦
 
 #include "Help.h"
+#include <codecvt>
+
 #include "FileManager.h"
 #include "../Help/Log.h"
 
@@ -36,4 +38,16 @@ std::string help::StringFromJson(const Json::Value& value, const std::string& in
 	Json::StreamWriterBuilder writerBuilder;
 	writerBuilder["indentation"] = indentation;
 	return Json::writeString(writerBuilder, value);
+}
+
+std::wstring help::StrToWstr(const std::string& str)
+{
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	return converter.from_bytes(str);
+}
+
+std::string help::WstrToStr(const std::wstring& wstr)
+{
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	return converter.to_bytes(wstr);
 }

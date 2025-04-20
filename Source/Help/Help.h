@@ -45,4 +45,7 @@ namespace help {
 	bool LoadJson(const std::string& fileName, Json::Value& value);
 	bool SaveJson(const std::string& fileName, const Json::Value& value, const std::string& indentation = "\t");
 	std::string StringFromJson(const Json::Value& value, const std::string& indentation = "\t");
+
+	std::wstring StrToWstr(const std::string& str);
+	std::string WstrToStr(const std::wstring& wstr);
 };

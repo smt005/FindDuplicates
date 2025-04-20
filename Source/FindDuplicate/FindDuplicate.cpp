@@ -244,6 +244,11 @@ namespace Window {
         }
     }
 
+    void FindDuplicate::OpenFile(const std::string& fileNamePath)
+    {
+        LOG("[FindDuplicate::OpenFile] open file '{}'", fileNamePath);
+    }
+
     void FindDuplicate::Load() {
     }
 
@@ -325,6 +330,12 @@ namespace Window {
             ImGui::Image(reinterpret_cast<ImTextureID>(**texturePtr),
                 { width, height },
                 { 0, 1 }, { 1, 0 }, { 1.f, 1.f, 1.f, 1.f }, { 1.f, 1.f, 1.f, 1.f });
+
+            if (ImGui::IsItemHovered()) {
+                if (ImGui::IsItemClicked()) {
+                    help::OpenFile(fileNameFirst);
+                }
+            }
 
             if (verticalSpace > 0.f) {
                 ImGui::Dummy(ImVec2(0.f, verticalSpace));

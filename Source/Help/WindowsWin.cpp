@@ -6,6 +6,8 @@
 #include <Windows.h>
 #include <shobjidl.h> 
 #include <algorithm>
+#include "../Help/Help.h"
+#include "../Help/Log.h"
 
 std::string help::SelectFile() {
     HRESULT result = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
@@ -58,4 +60,30 @@ std::string help::SelectFile() {
     CoUninitialize();
 
     return sFilePath;
+}
+
+bool help::OpenFile(const std::string fileNamePath)
+{
+    const std::wstring wfileNamePath = help::StrToWstr(fileNamePath);
+    return help::OpenFile(wfileNamePath);
+}
+
+bool help::OpenFile(const std::wstring wfileNamePath)
+{
+    HINSTANCE result = ShellExecuteW(
+        nullptr,
+        L"open",
+        wfileNamePath.c_str(),
+        nullptr,
+        nullptr,
+        SW_SHOWNORMAL
+    );
+
+    if ((INT_PTR)result <= 32) {
+        //errorText = TO_STRING("[help::OpenFile] file '{}' not open: ", wfileNamePath);
+       // std::cerr << errorText << (INT_PTR)result << std::endl;
+        return false;
+    }
+
+    return true;
 }
