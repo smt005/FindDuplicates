@@ -1,3 +1,4 @@
+﻿// ◦ Xyz ◦
 #pragma once
 
 #define WINDOWS_HIDE_CONSOLE true
@@ -7,17 +8,6 @@
 #include "json/json.h"
 
 namespace help {
-
-	template <class T>
-	void Log(T&& text) {
-#if !WINDOWS_HIDE_CONSOLE
-		std::cout << "LOG: " << text << std::endl;
-#endif
-
-#ifdef _DEBUG
-		_CrtDbgReport(_CRT_WARN, NULL, 0, NULL, "LOG: %s\n", text.c_str());
-#endif
-	}
 
 	template <typename T>
 	inline void CopyToArrayChar(T& arrayChar, const std::string& text) {

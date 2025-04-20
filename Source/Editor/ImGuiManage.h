@@ -1,3 +1,4 @@
+﻿// ◦ Xyz ◦
 #pragma once
 
 namespace Window {

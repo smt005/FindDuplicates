@@ -1,6 +1,8 @@
+﻿// ◦ Xyz ◦
 
 #include "Help.h"
 #include "FileManager.h"
+#include "../Help/Log.h"
 
 using namespace help;
 
@@ -21,7 +23,7 @@ bool help::LoadJson(const std::string& fileName, Json::Value& value) {
 		return true;
 	}
 
-	help::Log("Fail parse: " + fileName);
+	LOG("Fail parse: {}", fileName);
 	return false;
 }
 

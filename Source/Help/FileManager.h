@@ -1,3 +1,4 @@
+﻿// ◦ Xyz ◦
 #pragma once
 
 #include <string>
@@ -6,6 +7,7 @@
 namespace help {
 	class FileManager {
 	public:
+		static std::string GetFullFileNameDir();
 		static void SetResourcesDir(const std::filesystem::path& argResourcesDir);
 		static const std::filesystem::path& GetResourcesDir();
 		static std::filesystem::path FullPath(const std::filesystem::path& fileName);

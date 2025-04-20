@@ -1,15 +1,30 @@
+﻿// ◦ Xyz ◦
 
 #include "FileManager.h"
+#include <windows.h>
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-
+#include "FileUtils.h"
 #include "Help.h"
+#include "../Help/Log.h"
 
 using namespace help;
 
 std::filesystem::path FileManager::resourcesDir = std::filesystem::current_path();
+
+std::string FileManager::GetFullFileNameDir()
+{
+	static std::string currentFileNamePath;
+	if (currentFileNamePath.empty()) {
+		char buffer[MAX_PATH];
+		GetModuleFileNameA(nullptr, buffer, MAX_PATH);
+		currentFileNamePath = FileUtils::GetDirectory(FileUtils::ChangeToForwardSlash(std::string(buffer)));
+	}
+
+	return currentFileNamePath;
+}
 
 void FileManager::SetResourcesDir(const std::filesystem::path& argResourcesDir) {
 	std::filesystem::path currentPath = std::filesystem::current_path();
@@ -34,7 +49,7 @@ std::string FileManager::ReadTextFile(const std::filesystem::path& fileName) {
 
 	std::ifstream fileStream(fullFilePath);
 	if (!fileStream.is_open()) {
-		help::Log("Fail load: " + fileName.string());
+		LOG("Fail load: {}", fileName.string());
 		return std::string();
 	}
 
@@ -60,7 +75,7 @@ bool FileManager::WriteTextFile(const std::filesystem::path& fileName, const std
 
 	FILE* file;
 	if (fopen_s(&file, fullFilePath.string().c_str(), "w") != NULL) {
-		help::Log("Fail save: " + fileName.string());
+		LOG("Fail save: {}", fileName.string());
 		return false;
 	}
 

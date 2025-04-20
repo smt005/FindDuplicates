@@ -1,10 +1,12 @@
-#include "FindDuplicate.h"
+﻿// ◦ Xyz ◦
 
+#include "FindDuplicate.h"
 #include "imgui.h"
 
 #include "../Editor/PopupModal.h"
 #include "../Help/FileManager.h"
 #include "../Help/WindowsWin.h"
+#include "../Help/Log.h"
 
 namespace Window {
     namespace {
@@ -71,18 +73,19 @@ namespace Window {
         _inputFirst.SetWidth(_widthWindow - border);
         _inputSecond.SetWidth(_widthWindow - border);
 
-        _inputFirst.SetText("D:/Test_D");
-        _inputSecond.SetText("E:/Test_E");
+        _inputFirst.SetText(u8"C:/Папка Y");
+        _inputSecond.SetText(u8"C:/Папка Z");
     }
 
     void FindDuplicate::FinDublicate(const std::string& firstPath, const std::string& secondPath) {
         std::map<std::string, std::string> firstFiles;
         std::map<std::string, std::string> secondFiles;
 
-        help::Log(std::string("First: ...   ...   ..."));
+        const std::string firstDir = _inputFirst.GetText();
+        LOG("firstDir: {}", firstDir);
         FindFiles(_inputFirst.GetText(), firstFiles);
 
-        help::Log(std::string("Second: ...   ...   ..."));
+        LOG(std::string("Second: ...   ...   ..."));
         FindFiles(_inputSecond.GetText(), secondFiles);
 
         if (firstFiles.size() < secondFiles.size()) {
@@ -127,11 +130,7 @@ namespace Window {
                 }
 
                 std::string name = fullFilePath.substr(slashPos, (size - slashPos));
-
-                {
-                    std::string logMessage = "[" + name + "] " + fullFilePath;
-                    help::Log(logMessage);
-                }
+                LOG("[{}] {}", name, fullFilePath);
 
                 files.emplace(name, fullFilePath);
             }
