@@ -1,13 +1,77 @@
 ﻿// ◦ Xyz ◦
 
 #include "../Help/WindowsWin.h"
-
 #include <ShlObj_core.h>
 #include <Windows.h>
 #include <shobjidl.h> 
 #include <algorithm>
 #include "../Help/Help.h"
 #include "../Help/Log.h"
+
+namespace help {
+    int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData) {
+        switch (uMsg) {
+        case BFFM_INITIALIZED:
+            // Можно установить начальную папку, если lpData содержит путь
+            if (lpData) {
+                SendMessageW(hwnd, BFFM_SETSELECTIONW, TRUE, lpData);
+            }
+            break;
+        case BFFM_SELCHANGED:
+            // Можно выполнить действия при изменении выбранной папки
+            break;
+        default:
+            break;
+        }
+        return 0;
+    }
+
+    std::wstring BrowseForFolder() {
+        BROWSEINFOW bi = { 0 };
+        wchar_t buffer[MAX_PATH];
+        LPITEMIDLIST pidl;
+        std::wstring selectedFolderPath;
+
+        bi.hwndOwner = nullptr; // Дескриптор родительского окна (может быть nullptr)
+        bi.pidlRoot = nullptr;  // PIDL корневой папки (может быть nullptr для "Рабочего стола")
+        bi.pszDisplayName = buffer; // Буфер для отображаемого имени выбранной папки
+        bi.lpszTitle = L"Выберите папку:"; // Заголовок диалогового окна
+        bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI; // Флаги (только файловые папки, новый UI)
+        bi.lpfn = BrowseCallbackProc; // Указатель на callback-функцию (необязательно)
+        bi.lParam = 0;             // Данные, передаваемые в callback-функцию
+        bi.iImage = 0;             // Индекс изображения (не используется)
+
+        pidl = SHBrowseForFolderW(&bi);
+
+        if (pidl != nullptr) {
+            // Получаем путь к выбранной папке из PIDL
+            if (SHGetPathFromIDListW(pidl, buffer)) {
+                selectedFolderPath = buffer;
+            }
+
+            // Освобождаем PIDL
+            CoTaskMemFree(pidl);
+        }
+
+        return selectedFolderPath;
+    }
+}
+
+std::string help::ChooseDir() {
+    // Инициализируем COM-библиотеку
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    if (FAILED(hr)) {
+        LOG("[help::ChooseDir] Ошибка инициализации COM.");
+        return {};
+    }
+
+    const std::wstring choosedPath = BrowseForFolder();
+
+    // Освобождаем COM-библиотеку
+    CoUninitialize();
+
+    return help::WstrToStr(choosedPath);
+}
 
 std::string help::SelectFile() {
     HRESULT result = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);

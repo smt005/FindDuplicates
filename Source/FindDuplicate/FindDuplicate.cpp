@@ -11,7 +11,7 @@
 
 namespace Window {
     namespace {
-        float border = 20.f;
+        float border = 45.f;
 
         ImVec4 redColor = {0.9f, 0.1f, 0.1f, 1.f};
         ImVec4 blackColor = { 0.0f, 0.0f, 0.0f, 1.f };
@@ -25,10 +25,14 @@ namespace Window {
         , _windowFlags(ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove) 
         , _resourceFileName(resourceFileName)
 	{
-        std::filesystem::path path = std::filesystem::current_path();
-        path += resourcePath;
-        help::FileManager::SetResourcesDir(path);
+        help::FileManager::SetResourcesDir(help::FileManager::GetFullFileNameDir());
+        Load();
 	}
+
+    FindDuplicate::~FindDuplicate()
+    {
+        Save();
+    }
 
 	void FindDuplicate::Resize(float width, float height) {        
         ImGui::SetWindowPos(_windowId, { 0.f, 0.f });
@@ -38,7 +42,16 @@ namespace Window {
         _heightWindow = height;
 
         _inputFirst.SetWidth(_widthWindow - border);
+        _inputFirst.SetCallback([this](const char* chars) {
+            _jsonSettings["FirstDir"] = chars;
+            return true;
+            });
+
         _inputSecond.SetWidth(_widthWindow - border);
+        _inputSecond.SetCallback([this](const char* chars) {
+            _jsonSettings["SecondDir"] = chars;
+            return true;
+            });
 	}
 
     void FindDuplicate::InitDisplay(float width, float height) {
@@ -53,7 +66,19 @@ namespace Window {
 		ImGui::Begin(_windowId, nullptr, _windowFlags);
 
         _inputFirst.Display();
+        ImGui::SameLine();
+        if (ImGui::Button("?##choose_first_btn", { 20.f, 20.f })) {
+            ChooseDir(_inputFirst);
+            _jsonSettings["FirstDir"] = help::StrToWstr(_inputSecond.GetText()).c_str();
+
+        }
+
         _inputSecond.Display();
+        ImGui::SameLine();
+        if (ImGui::Button("?##choose_second_btn", { 20.f, 20.f })) {
+            ChooseDir(_inputSecond);
+            _jsonSettings["SecondDir"] = help::StrToWstr(_inputSecond.GetText()).c_str();
+        }
 
         ImGui::Dummy(ImVec2(0.f, 0.f));
         if (ImGui::Button(u8"Найти дубликаты", {200.f, 32.f})) {
@@ -95,8 +120,8 @@ namespace Window {
         _inputFirst.SetWidth(_widthWindow - border);
         _inputSecond.SetWidth(_widthWindow - border);
 
-        _inputFirst.SetText(u8"C:/Папка Y");
-        _inputSecond.SetText(u8"C:/Папка Z");
+        _inputFirst.SetText(u8"C:/");
+        _inputSecond.SetText(u8"C:/");
     }
 
     PairMap FindDuplicate::CollectFileInfo(const std::string& firstDir, const std::string& secondDir) {
@@ -244,15 +269,32 @@ namespace Window {
         }
     }
 
-    void FindDuplicate::OpenFile(const std::string& fileNamePath)
+    void FindDuplicate::ChooseDir(Input& input)
     {
-        LOG("[FindDuplicate::OpenFile] open file '{}'", fileNamePath);
+        const std::string newDir = help::ChooseDir();
+        if (!newDir.empty()) {
+            input.SetText(newDir);
+        }
     }
 
     void FindDuplicate::Load() {
+        if (help::FileManager::HasFile(_settingsFileNamePath)) {
+            if (help::LoadJson(_settingsFileNamePath, _jsonSettings)) {
+                if (_jsonSettings["FirstDir"].isString()) {
+                    const std::string firstDir = _jsonSettings["FirstDir"].asString();
+                    _inputFirst.SetText(firstDir);
+                }
+
+                if (_jsonSettings["SecondDir"].isString()) {
+                    const std::string secondDir = _jsonSettings["SecondDir"].asString();
+                    _inputSecond.SetText(secondDir);
+                }
+            }
+        }
     }
 
     void FindDuplicate::Save() {
+        help::SaveJson(_settingsFileNamePath, _jsonSettings);
     }
 
     // Private
@@ -345,6 +387,11 @@ namespace Window {
             ImGui::Dummy(ImVec2(0.f, 40.f));
             ImGui::TextColored(redColor, "%s", "Texture no founded.");
             ImGui::Dummy(ImVec2(0.f, 40.f));
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button(u8"Открыть папку", { 200.f, 32.f })) {
+            help::OpenFile(FileUtils::GetDirectory(fileNameFirst));
         }
 
         ImGui::EndChild();

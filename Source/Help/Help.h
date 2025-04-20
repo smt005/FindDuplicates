@@ -1,7 +1,7 @@
 ﻿// ◦ Xyz ◦
 #pragma once
 
-#define WINDOWS_HIDE_CONSOLE true
+#define WINDOWS_HIDE_CONSOLE false
 
 #include <string>
 #include <iostream>

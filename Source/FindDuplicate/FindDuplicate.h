@@ -38,6 +38,7 @@ namespace Window {
 		FindDuplicate(FindDuplicate&&) = delete;
 		void operator = (const FindDuplicate&) = delete;
 		void operator = (FindDuplicate&&) = delete;
+		~FindDuplicate();
 
 	public:
 		void InitDisplay(float width, float height);
@@ -59,7 +60,7 @@ namespace Window {
 		void FinUnique(PairMap& pairMap);
 		void CreateDublicate(InfoFiles& infoFiles);
 		void CreateDublicates(std::vector<std::unique_ptr<InfoFiles>>& dublicates);
-		void OpenFile(const std::string& fileNamePath);
+		void ChooseDir(Input& input);
 
 		void ListDisplay();
 		void InfoDisplay();
@@ -78,5 +79,7 @@ namespace Window {
 		std::vector<std::unique_ptr<InfoFiles>>::iterator _itSelectDublicate = _dublicates.end();
 
 		std::string _resourceFileName;
+		std::string _settingsFileNamePath = "Settings.json";
+		Json::Value _jsonSettings;
 	};
 }

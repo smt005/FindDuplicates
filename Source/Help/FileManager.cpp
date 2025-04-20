@@ -20,7 +20,9 @@ std::string FileManager::GetFullFileNameDir()
 	if (currentFileNamePath.empty()) {
 		char buffer[MAX_PATH];
 		GetModuleFileNameA(nullptr, buffer, MAX_PATH);
-		currentFileNamePath = FileUtils::GetDirectory(FileUtils::ChangeToForwardSlash(std::string(buffer)));
+		std::string bufferStr = buffer;
+		std::replace(bufferStr.begin(), bufferStr.end(), '\\', '/');
+		currentFileNamePath = FileUtils::GetDirectory(bufferStr);
 	}
 
 	return currentFileNamePath;

@@ -44,6 +44,10 @@ namespace Window {
 			return _textBuffer.data();
 		}
 
+		const char* GetCStr() {
+			return _textBuffer.data();
+		}
+
 		bool Error() {
 			return _error;
 		}
