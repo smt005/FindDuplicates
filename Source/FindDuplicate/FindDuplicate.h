@@ -11,6 +11,8 @@
 #include "../Help/Texture.h"
 
 namespace Window {
+	using PairMap = std::pair<std::unordered_map<std::string, std::string>, std::unordered_map<std::string, std::string>>;
+
 	class FindDuplicate final {
 	public:
 		struct InfoFiles {
@@ -50,9 +52,13 @@ namespace Window {
 		inline void ResetPtr() { _flagWndPtr.reset(); }
 
 		void InitInterface();
-		void FinDublicate(const std::string& firstPath, const std::string& secondPath);
-		void FinDublicate(std::map<std::string, std::string>& firstFiles, std::map<std::string, std::string>& secondFiles);
-		void FindFiles(const std::filesystem::path& dir, std::map<std::string, std::string>& files);
+		PairMap CollectFileInfo(const std::string& firstPath, const std::string& secondPath);
+		void FindFiles(const std::filesystem::path& dir, std::unordered_map<std::string, std::string>& files);
+
+		void FinDublicate(PairMap& pairMap);
+		void FinUnique(PairMap& pairMap);
+		void CreateDublicate(InfoFiles& infoFiles);
+		void CreateDublicates(std::vector<std::unique_ptr<InfoFiles>>& dublicates);
 
 		void ListDisplay();
 		void InfoDisplay();

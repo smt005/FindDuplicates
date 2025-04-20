@@ -7,6 +7,7 @@
 #include "../Help/FileManager.h"
 #include "../Help/WindowsWin.h"
 #include "../Help/Log.h"
+#include "../Help/FileUtils.h"
 
 namespace Window {
     namespace {
@@ -55,8 +56,29 @@ namespace Window {
         _inputSecond.Display();
 
         ImGui::Dummy(ImVec2(0.f, 0.f));
-        if (ImGui::Button("Find", {200.f, 32.f})) {
-            FinDublicate(_inputFirst.GetText(), _inputSecond.GetText());
+        if (ImGui::Button(u8"Найти дубликаты", {200.f, 32.f})) {
+            PairMap pairMap = CollectFileInfo(_inputFirst.GetText(), _inputSecond.GetText());
+            FinDublicate(pairMap);
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button(u8"Найти одиночные", { 200.f, 32.f })) {
+            PairMap pairMap = CollectFileInfo(_inputFirst.GetText(), _inputSecond.GetText());
+            FinUnique(pairMap);
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button(u8"Дублировать", { 200.f, 32.f })) {
+            if (_itSelectDublicate != _dublicates.end()) {
+                CreateDublicate(**_itSelectDublicate);
+            }
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button(u8"Дублировать всё", { 200.f, 32.f })) {
+            if (!_dublicates.empty()) {
+                CreateDublicates(_dublicates);
+            }
         }
 
         if (!_dublicates.empty()) {
@@ -75,42 +97,16 @@ namespace Window {
 
         _inputFirst.SetText(u8"C:/Папка Y");
         _inputSecond.SetText(u8"C:/Папка Z");
-
-        //_inputFirst.SetText(u8"C:/Abc");
-        //_inputSecond.SetText(u8"C:/Xyz");
     }
 
-    void FindDuplicate::FinDublicate(const std::string& firstPath, const std::string& secondPath) {
-        std::map<std::string, std::string> firstFiles;
-        std::map<std::string, std::string> secondFiles;
-
-        const std::string firstDir = _inputFirst.GetText();
-        LOG("firstDir: {}", firstDir);
-        FindFiles(_inputFirst.GetText(), firstFiles);
-
-        LOG(std::string("Second: ...   ...   ..."));
-        FindFiles(_inputSecond.GetText(), secondFiles);
-
-        if (firstFiles.size() < secondFiles.size()) {
-            FinDublicate(firstFiles, secondFiles);
-        }
-        else {
-            FinDublicate(secondFiles, firstFiles);
-        }
+    PairMap FindDuplicate::CollectFileInfo(const std::string& firstDir, const std::string& secondDir) {
+        PairMap pairMap;
+        FindFiles(firstDir, pairMap.first);
+        FindFiles(secondDir, pairMap.second);
+        return pairMap;
     }
-
-    void FindDuplicate::FinDublicate(std::map<std::string, std::string>& firstFiles, std::map<std::string, std::string>& secondFiles) {
-        for (auto& pair : firstFiles) {
-            if (auto it = secondFiles.find(pair.first); it != secondFiles.end()) {
-                _dublicates.emplace_back(new InfoFiles(pair.first, pair.second, it->second));
-                _itSelectDublicate = _dublicates.end();
-            }
-        }
-
-        _itSelectDublicate = _dublicates.end();
-    }
-
-    void FindDuplicate::FindFiles(const std::filesystem::path& dir, std::map<std::string, std::string>& files) {
+    
+    void FindDuplicate::FindFiles(const std::filesystem::path& dir, std::unordered_map<std::string, std::string>& files) {
         if (!std::filesystem::exists(dir)) {
             LOG("[FindDuplicate::FindFiles] dir '{}' not founded.", dir);
             return;
@@ -144,7 +140,109 @@ namespace Window {
             }
         }
     }
+    
+    void FindDuplicate::FinDublicate(PairMap& pairMap) {
+        _dublicates.clear();
 
+        std::unordered_map<std::string, std::string>& firstFiles = pairMap.first;
+        std::unordered_map<std::string, std::string>& secondFiles = pairMap.second;
+
+        for (auto& pair : firstFiles) {
+            if (auto it = secondFiles.find(pair.first); it != secondFiles.end()) {
+                _dublicates.emplace_back(new InfoFiles(pair.first, pair.second, it->second));
+                _itSelectDublicate = _dublicates.end();
+            }
+        }
+
+        _itSelectDublicate = _dublicates.end();
+    }
+
+    void FindDuplicate::FinUnique(PairMap& pairMap)
+    {
+        auto findUnique = [this](const auto& firstFiles, const auto& secondFiles, bool needSwap) {
+            for (auto& pair : firstFiles) {
+                if (auto it = secondFiles.find(pair.first); it == secondFiles.end()) {
+                    if (needSwap) {
+                        _dublicates.emplace_back(new InfoFiles(pair.first, {}, pair.second));
+                    }
+                    else {
+                        _dublicates.emplace_back(new InfoFiles(pair.first, pair.second, {}));
+                    }
+                }
+            }
+        };
+
+        _dublicates.clear();
+
+        findUnique(pairMap.first, pairMap.second, false);
+        findUnique(pairMap.second, pairMap.first, true);
+
+        _itSelectDublicate = _dublicates.end();
+    }
+
+    void FindDuplicate::CreateDublicate(InfoFiles& infoFiles)
+    {
+        std::string fileNamePath = infoFiles.fileNameFirst;
+        std::string copyFileNamePath = infoFiles.fileNameSecond;
+
+        if (fileNamePath.empty()) {
+            std::swap(fileNamePath, copyFileNamePath);
+        }
+
+        if (!std::filesystem::exists(fileNamePath)) {
+            LOG("[FindDuplicate::CreateDublicate] path files '{}' not founded.", fileNamePath);
+            return;
+        }
+
+        std::string firstDir = _inputFirst.GetText();
+        std::string secondtDir = _inputSecond.GetText();
+
+        size_t pos = fileNamePath.find(firstDir);
+        if (pos == fileNamePath.npos) {
+            pos = fileNamePath.find(secondtDir);
+
+            if (pos != fileNamePath.npos) {
+                std::swap(firstDir, secondtDir);
+            }
+            else {
+                LOG("[FindDuplicate::CreateDublicate] relativePath not founded.");
+                return;
+            }
+        }
+
+        const size_t sizePredDir = firstDir.size();
+        const std::string relativePath = fileNamePath.substr(sizePredDir, fileNamePath.size() - sizePredDir);
+        copyFileNamePath = TO_STRING("{}{}", secondtDir, relativePath);
+
+        if (std::filesystem::exists(copyFileNamePath)) {
+            LOG("[FindDuplicate::CreateDublicate] file name path '{}' is busy!", copyFileNamePath);
+            return;
+        }
+
+        const std::string copyFileNameDir = FileUtils::GetDirectory(copyFileNamePath);
+        if (!std::filesystem::exists(copyFileNameDir)) {
+            std::filesystem::create_directories(copyFileNameDir);
+        }
+
+        if (std::filesystem::copy_file(fileNamePath, copyFileNamePath)) {
+            if (infoFiles.fileNameFirst.empty()) {
+                std::swap(infoFiles.fileNameFirst, copyFileNamePath);
+            }
+            else {
+                std::swap(infoFiles.fileNameSecond, copyFileNamePath);
+            }
+        }
+        else {
+            LOG("[FindDuplicate::CreateDublicate] error copy file '{}' to '{}'", fileNamePath, copyFileNamePath);
+        }
+    }
+
+    void FindDuplicate::CreateDublicates(std::vector<std::unique_ptr<InfoFiles>>& dublicates)
+    {
+        for (const auto& dublicateInfo : dublicates) {
+            CreateDublicate(*dublicateInfo);
+        }
+    }
 
     void FindDuplicate::Load() {
     }
@@ -197,8 +295,9 @@ namespace Window {
         auto& infoFiles = *_itSelectDublicate;
         auto& texturePtr = infoFiles->texturePtr;
 
-        if (!texturePtr && help::FileManager::HasFile(infoFiles->fileNameFirst)) {
-            texturePtr = Texture::AddTexture(infoFiles->fileNameFirst, 0);
+        const std::string& fileNameFirst = !infoFiles->fileNameFirst.empty() ? infoFiles->fileNameFirst : infoFiles->fileNameSecond;
+        if (!texturePtr && help::FileManager::HasFile(fileNameFirst)) {            
+            texturePtr = Texture::AddTexture(fileNameFirst, 0);
             texturePtr->Load();
         }
 
